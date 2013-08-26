@@ -8,7 +8,7 @@ centos64:
 
 precise64:
     vagrantBox: precise64
-    vagrantUrl: vagrantbox = 'http://puppet-vagrant-boxes.puppetlabs.com/ubuntu-server-12042-x64-vbox4210.box'
+    vagrantUrl: http://puppet-vagrant-boxes.puppetlabs.com/ubuntu-server-12042-x64-vbox4210.box
     amazonImage: TBD
     rackspaceImage: TBD
 
