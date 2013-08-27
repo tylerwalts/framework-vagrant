@@ -86,8 +86,8 @@ else
 fi
 
 symLink    imageTypes.yaml
-copyAndTag vagrant/nodeLists/cluster.yaml
-copyAndTag vagrant/nodeLists/dev.yaml
+copyAndTag nodeLists/cluster.yaml
+copyAndTag nodeLists/dev.yaml
 
 # Setup initial keys
 [[ ! -e $targetVagrantPath/keys/.gitignore \
@@ -95,7 +95,7 @@ copyAndTag vagrant/nodeLists/dev.yaml
     echo -e " # Your private keys and things go in this directory and should be protected.
 # This is to keep this directory always clear and ignored for commit, besides this file.
 *\n !.gitignore\n" >> $targetVagrantPath/keys/.gitignore
-echo "accessKey: MY_ACCESS_KEY\nsecretKey: MY_SECRET_KEY" > awsKeys.yaml
+echo -e "accessKey: MY_ACCESS_KEY\nsecretKey: MY_SECRET_KEY\nkeypair: MY_KEYPAIR\nkeypath:'keys/MY_KEYFILE.pem" > $targetVagrantPath/keys/awsKeys.yaml
 
 echo -e "Updating project's README.md..."
 [[ ! -e $projectPath/README.md \
