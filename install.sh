@@ -16,7 +16,7 @@ frameworkSource="$(cat ../../../.git/modules/tools/vagrant/.framework-vagrant/HE
 function copyAndTag {
     filename=$1
     sourceFile=$frameworkPath/$filename
-    destFile=$targetVagrantPath/$filename
+    [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
     if [[ -f $destFile ]]; then
             echo "* Skipping existing template: $destFile"
     else
@@ -29,25 +29,36 @@ function copyAndTag {
 }
 function symLink {
     filename=$1
+    destFile=$2 # Optional arg.  Default is relative path
+    relativeSourcePath=$3 # Optional arg.  Default is relative path
     osType="$(uname)"
     if [[ $osType == *WIN* || $osType == *MIN* ]]; then
         # Look for CYGWIN or MINGW
         copyAndTag $filename
     else
-        filenameOnly=$(basename "$filename")
-        relativePath="${filename%/*}"
-        if [[ "$filenameOnly" == "$relativePath" ]]; then
-            relativePath=""
+        # Build Destination Link
+        [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
+
+        # Build Source Link
+        if [[ "$relativeSourcePath" != "" ]]; then
+            sourceFile="${relativeSourcePath}.framework-vagrant/$filename"
         else
-            pathCount="$( echo $relativePath | grep -o '/' | wc -l)"
-            relativePath=""
-            while [[ "$pathCount" != "-1" ]]; do
-                relativePath="${relativePath}../"
-                (( pathCount-- ))
-            done
+            filenameOnly=$(basename "$filename")
+            relativePath="${filename%/*}"
+            if [[ "$filenameOnly" == "$relativePath" ]]; then
+                relativePath=""
+            else
+                pathCount="$( echo $relativePath | grep -o '/' | wc -l)"
+                relativePath=""
+                while [[ "$pathCount" != "-1" ]]; do
+                    relativePath="${relativePath}../"
+                    (( pathCount-- ))
+                done
+            fi
+            sourceFile="${relativePath}.framework-vagrant/$filename"
         fi
-        sourceFile="${relativePath}.framework-vagrant/$filename"
-        destFile=$targetVagrantPath/$filename
+
+        # Check and make link
         if [[ -h $destFile ]]; then
             echo "- Updating symlink: $filename"
             rm $destFile
@@ -77,14 +88,11 @@ mkdir -p $targetVagrantPath/nodeLists/ \
 [[ ! -e $targetVagrantPath/.gitignore \
     || "$(grep 'maintained' $targetVagrantPath/.gitignore)" == "" ]] && \
     echo "# These are maintained by the vagrant framework" >> $targetVagrantPath/.gitignore
-
 # Special case for Vagrantfile - assumes convention and install in project root
-if [[ $osType == *WIN* || $osType == *MIN* ]]; then
-    cp $frameworkPath/Vagrantfile $targetVagrantPath/../../Vagrantfile
-else
-    ln -s $frameworkPath/Vagrantfile $targetVagrantPath/../../Vagrantfile
-fi
+[[ "$(grep 'Vagrantfile' $targetVagrantPath/../../.gitignore)" == "" ]] && \
+    echo "Vagrantfile\n.vagrant" >> $targetVagrantPath/keys/.gitignore
 
+symLink    Vagrantfile ../../../Vagrantfile tools/vagrant/
 symLink    imageTypes.yaml
 copyAndTag nodeLists/cluster.yaml
 copyAndTag nodeLists/dev.yaml

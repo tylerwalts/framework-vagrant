@@ -1,5 +1,3 @@
-domain = 'example.com'
-
 # Note: First time users run this:  `vagrant plugin install vagrant-aws`
 require 'yaml'
 Vagrant.require_plugin "vagrant-aws"
@@ -32,7 +30,8 @@ Vagrant.configure("2") do |config|
             # Amazon
             node_default.vm.provider :aws do |aws, override|
                 domain = domain
-                override.vm.hostname           = node['hostname'] + '.' + domain
+                override.vm.hostname           = node['domain']
+                override.vm.hostname           = node['hostname']
                 aws.access_key_id              = awsKeys['accessKey']
                 aws.secret_access_key          = awsKeys['secretKey']
                 aws.keypair_name               = awsKeys['keypair']
@@ -45,9 +44,10 @@ Vagrant.configure("2") do |config|
 
             # VirtualBox
             node_default.vm.provider :virtualbox do |vb, override|
-                override.vm.hostname = node['hostname'] + domain
-                override.vm.box = imageTypes[ node['imageType'] ]['vagrantBox']
-                override.vm.box_url = imageTypes[ node['imageType'] ]['vagrantUrl']
+                override.vm.hostname           = node['domain']
+                override.vm.hostname           = node['hostname']
+                override.vm.box                = imageTypes[ node['imageType'] ]['vagrantBox']
+                override.vm.box_url            = imageTypes[ node['imageType'] ]['vagrantUrl']
                 override.vm.network :private_network, ip: node['ip']
                 node['portmappings'] && node['portmappings'].each do |portmap|
                     override.vm.network :forwarded_port, guest: portmap['from'], host: portmap['to']

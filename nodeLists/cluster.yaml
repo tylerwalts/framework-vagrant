@@ -1,5 +1,6 @@
 -
     hostname: 'app'
+    domain: 'example.com'
     ip: '192.168.88.1'
     imageType: 'centos64'
     ram: '1024'
@@ -10,6 +11,7 @@
             to: 8088
 -
     hostname: 'web'
+    domain: 'example.com'
     ip: '192.168.88.2'
     imageType: 'centos64'
     ram: '512'

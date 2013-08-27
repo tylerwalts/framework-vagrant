@@ -1,5 +1,6 @@
 -
     hostname: 'dev'
+    domain: 'example.com'
     ip: '192.168.88.1'
     imageType: 'centos64'
     ram: '512'
