@@ -80,9 +80,9 @@ mkdir -p $targetVagrantPath/nodeLists/ \
 
 # Special case for Vagrantfile - assumes convention and install in project root
 if [[ $osType == *WIN* || $osType == *MIN* ]]; then
-    ln -s $frameworkPath/Vagrantfile $targetVagrantPath/../../Vagrantfile
-else
     cp $frameworkPath/Vagrantfile $targetVagrantPath/../../Vagrantfile
+else
+    ln -s $frameworkPath/Vagrantfile $targetVagrantPath/../../Vagrantfile
 fi
 
 symLink    imageTypes.yaml
@@ -95,7 +95,7 @@ copyAndTag nodeLists/dev.yaml
     echo -e " # Your private keys and things go in this directory and should be protected.
 # This is to keep this directory always clear and ignored for commit, besides this file.
 *\n !.gitignore\n" >> $targetVagrantPath/keys/.gitignore
-echo -e "accessKey: MY_ACCESS_KEY\nsecretKey: MY_SECRET_KEY\nkeypair: MY_KEYPAIR\nkeypath:'keys/MY_KEYFILE.pem" > $targetVagrantPath/keys/awsKeys.yaml
+echo -e "accessKey: MY_ACCESS_KEY\nsecretKey: MY_SECRET_KEY\nkeypair: MY_KEYPAIR\nkeypath: tools/vagrant/keys/MY_KEYFILE.pem" > $targetVagrantPath/keys/awsKeys.yaml
 
 echo -e "Updating project's README.md..."
 [[ ! -e $projectPath/README.md \

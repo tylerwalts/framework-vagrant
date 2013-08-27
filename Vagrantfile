@@ -3,7 +3,7 @@ domain = 'example.com'
 # Note: First time users run this:  `vagrant plugin install vagrant-aws`
 require 'yaml'
 Vagrant.require_plugin "vagrant-aws"
-awsKeys = YAML.load_file("keys/awsKeys.yaml")
+awsKeys = YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
 awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
 
 # Get list of base image configs:
