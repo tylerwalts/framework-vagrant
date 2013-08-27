@@ -14,23 +14,25 @@ targetVagrantPath="$( cd "$frameworkPath/../" && pwd )"
 # Assumes this was installed using the sprint-zero framework
 frameworkSource="$(cat ../../../.git/modules/tools/vagrant/.framework-vagrant/HEAD) on $(date +%Y-%m-%d_%H%M)"
 function copyAndTag {
-    filename=$1
-    sourceFile=$frameworkPath/$filename
+    local filename=$1
+    local sourceFile=$frameworkPath/$filename
+    local destFile=$2
     [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
     if [[ -f $destFile ]]; then
             echo "* Skipping existing template: $destFile"
     else
         echo "Copying: $filename"
-        command="cp $sourceFile $destFile"
+        local command="cp $sourceFile $destFile"
         $command
         echo "#$frameworkSource" >> $destFile
         copiedFileList=" $copiedFileList $filename "
     fi
 }
 function symLink {
-    filename=$1
-    destFile=$2 # Optional arg.  Default is relative path
-    relativeSourcePath=$3 # Optional arg.  Default is relative path
+    local filename=$1
+    local destFile=$2 # Optional arg.  Default is relative path
+    local relativeSourcePath=$3 # Optional arg.  Default is relative path
+    
     osType="$(uname)"
     if [[ $osType == *WIN* || $osType == *MIN* ]]; then
         # Look for CYGWIN or MINGW
@@ -39,6 +41,12 @@ function symLink {
         # Build Destination Link
         [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
 
+
+        local sourceFile
+        local filenameOnly
+        local relativePath
+        local pathCount
+        
         # Build Source Link
         if [[ "$relativeSourcePath" != "" ]]; then
             sourceFile="${relativeSourcePath}.framework-vagrant/$filename"
