@@ -3,15 +3,12 @@ domain = 'example.com'
 # Note: First time users run this:  `vagrant plugin install vagrant-aws`
 require 'yaml'
 Vagrant.require_plugin "vagrant-aws"
-begin
-    awsKeys = YAML.load_file("keys/awsKeys.yaml")
-rescue
-    awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
-end
+awsKeys = YAML.load_file("keys/awsKeys.yaml")
+awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
 
 # Get list of base image configs:
 imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
-imageTypes ||= {accessKey:'foo',secretKey:'bar'} # Prevent fail for local only dev
+imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
 
 ### Node List ###
 # Use environment var, or default below:
