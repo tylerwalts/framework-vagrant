@@ -1,12 +1,19 @@
 # Note: First time users run this:  `vagrant plugin install vagrant-aws`
 require 'yaml'
 Vagrant.require_plugin "vagrant-aws"
-awsKeys = YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
-awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
+
+begin
+  awsKeys = YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
+rescue
+  awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
+end
 
 # Get list of base image configs:
-imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
-imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
+begin
+  imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
+rescue
+  imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
+end
 
 ### Node List ###
 # Use environment var, or default below:
@@ -17,7 +24,6 @@ p "Using node list: #{nodeList}"
 nodes = YAML.load_file("tools/vagrant/nodeLists/#{nodeList}.yaml")
 
 Vagrant.configure("2") do |config|
-
     ### Provide VMs ###
     nodes.each do |node|
         config.vm.define node['hostname'] do |node_default|
@@ -66,12 +72,11 @@ Vagrant.configure("2") do |config|
             # TODO
 
         end
-    end
 
-    ### Provision VMs ###
-    # Assume using the puppet apply wrapper with librarian argument
-    config.vm.provision :shell do |shell|
-        shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
+        ### Provision VMs ###
+        # Assume using the puppet apply wrapper with librarian argument
+        config.vm.provision :shell do |shell|
+            shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
+        end
     end
-
 end
