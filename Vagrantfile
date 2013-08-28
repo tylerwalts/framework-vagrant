@@ -76,7 +76,7 @@ Vagrant.configure("2") do |config|
         ### Provision VMs ###
         # Assume using the puppet apply wrapper with librarian argument
         config.vm.provision :shell do |shell|
-            shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
+            shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l -f FACTER_hostname=" + node['hostname']
         end
     end
 end
