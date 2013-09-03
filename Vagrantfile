@@ -4,7 +4,7 @@ Vagrant.require_plugin "vagrant-aws"
 
 
 awsKeys = {
-  "accessKey"       => ENV['AWS_SECRET_ACCESS_KEY'] || 'define_access',
+  "accessKey"       => ENV['AWS_ACCESS_KEY']        || 'define_access',
   "secretKey"       => ENV['AWS_SECRET_KEY']        || 'define_secret',
   "keypair"         => ENV['AWS_KEYPAIR']           || 'define_keypair',
   "keypath"         => ENV['AWS_KEYPATH']           || 'define_keypath', 
