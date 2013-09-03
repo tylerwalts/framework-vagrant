@@ -1,12 +1,27 @@
 # Note: First time users run this:  `vagrant plugin install vagrant-aws`
 require 'yaml'
 Vagrant.require_plugin "vagrant-aws"
-awsKeys = YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
-awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
+
+
+awsKeys = {
+  "accessKey"       => ENV['AWS_SECRET_ACCESS_KEY'] || 'define_access',
+  "secretKey"       => ENV['AWS_SECRET_KEY']        || 'define_secret',
+  "keypair"         => ENV['AWS_KEYPAIR']           || 'define_keypair',
+  "keypath"         => ENV['AWS_KEYPATH']           || 'define_keypath', 
+  "security_group"  => ENV['AWS_SECURITY_GRP_ID']   || 'default'
+}
+begin
+  awsKeys.merge! YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
+rescue
+  p "AWS keys file was missing, using environment vairables/defaults"
+end
 
 # Get list of base image configs:
-imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
-imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
+begin
+  imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
+rescue
+  imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
+end
 
 ### Node List ###
 # Use environment var, or default below:
@@ -20,6 +35,7 @@ Vagrant.configure("2") do |config|
 
     ### Provide VMs ###
     nodes.each do |node|
+        fqdn="#{node['hostname']}.#{node['domain']}"
         config.vm.define node['hostname'] do |node_default|
 
             # Default settings for all providers
@@ -29,11 +45,9 @@ Vagrant.configure("2") do |config|
 
             # Amazon
             node_default.vm.provider :aws do |aws, override|
-                domain = domain
-                override.vm.hostname           = node['domain']
-                override.vm.hostname           = node['hostname']
                 aws.access_key_id              = awsKeys['accessKey']
                 aws.secret_access_key          = awsKeys['secretKey']
+                aws.security_groups            = [awsKeys['security_group']].flatten
                 aws.keypair_name               = awsKeys['keypair']
                 override.ssh.private_key_path  = awsKeys['keypath']
                 override.ssh.username          = "root"
@@ -44,8 +58,8 @@ Vagrant.configure("2") do |config|
 
             # VirtualBox
             node_default.vm.provider :virtualbox do |vb, override|
-                override.vm.hostname           = node['domain']
-                override.vm.hostname           = node['hostname']
+                fqdn = "#{node['hostname']}.vagrant.#{node['domain']}"
+                override.vm.hostname           = fqdn
                 override.vm.box                = imageTypes[ node['imageType'] ]['vagrantBox']
                 override.vm.box_url            = imageTypes[ node['imageType'] ]['vagrantUrl']
                 override.vm.network :private_network, ip: node['ip']
@@ -54,7 +68,7 @@ Vagrant.configure("2") do |config|
                 end
                 vb.customize [
                     'modifyvm', :id,
-                    '--name', node['hostname'],
+                    '--name', fqdn,
                     '--memory', node['ram'],
                     "--natdnsproxy1", "off",
                     "--natdnshostresolver1", "off"
@@ -65,13 +79,11 @@ Vagrant.configure("2") do |config|
             # Rackspace
             # TODO
 
+            ### Provision VMs ###
+            # Assume using the puppet apply wrapper with librarian argument
+            config.vm.provision :shell do |shell|
+                shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
+            end
         end
     end
-
-    ### Provision VMs ###
-    # Assume using the puppet apply wrapper with librarian argument
-    config.vm.provision :shell do |shell|
-        shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
-    end
-
 end
