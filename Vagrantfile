@@ -40,8 +40,8 @@ Vagrant.configure("2") do |config|
 
             # Default settings for all providers
             node_default.vm.hostname = node['hostname']
-            node_default.vm.box = 'OverrideMe'
-            node_default.vm.box_url = 'http://override.me'
+            node_default.vm.box = 'Aws_Dummy_Box'
+            node_default.vm.box_url = 'https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box'
 
             # Amazon
             node_default.vm.provider :aws do |aws, override|
