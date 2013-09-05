@@ -2,8 +2,8 @@
 
 centos64:
     vagrantBox: Centos64
-    vagrantUrl: http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130427.box
-    amazonImage: ami-2d662b44
+    vagrantUrl: http://puppet-vagrant-boxes.puppetlabs.com/centos-64-x64-vbox4210.box
+    amazonImage: ami-d31b54ba
     rackspaceImage: TBD
 
 precise64:
