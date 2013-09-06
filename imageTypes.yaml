@@ -3,7 +3,7 @@
 centos64:
     vagrantBox: Centos64
     vagrantUrl: http://puppet-vagrant-boxes.puppetlabs.com/centos-64-x64-vbox4210.box
-    amazonImage: ami-d31b54ba
+    amazonImage: ami-6fb1fe06
     rackspaceImage: TBD
 
 precise64:
