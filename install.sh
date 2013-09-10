@@ -7,10 +7,11 @@
 #
 
 frameworkPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-targetVagrantPath="$1"
+projectPath="$1"
+targetVagrantPath="$1/tools/vagrant"
 
-if [[ ! -d $targetVagrantPath ]]; then 
-  echo "The target Vagrant of [$targetVagrantPath] installation path is invalid"
+if [[ ! -d $projectPath ]]; then 
+  echo "The target Vagrant of [$projectPath] installation path is invalid"
   exit 127
 fi
 
@@ -99,7 +100,7 @@ echo "Installing vagrant framework into project repository...
 mkdir -p $targetVagrantPath/nodeLists/ \
     $targetVagrantPath/keys
 
-copyAndTag Vagrantfile 
+copyAndTag Vagrantfile "$projectPath/Vagrantfile"
 copyAndTag imageTypes.yaml
 copyAndTag nodeLists/cluster.yaml
 copyAndTag nodeLists/dev.yaml
