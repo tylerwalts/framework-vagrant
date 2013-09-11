@@ -11,14 +11,14 @@ awsKeys = {
   "security_group"  => ENV['AWS_SECURITY_GRP_ID']   || 'default'
 }
 begin
-  awsKeys.merge! YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
+  awsKeys.merge! YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/keys/awsKeys.yaml")
 rescue
   p "AWS keys file was missing, using environment vairables/defaults"
 end
 
 # Get list of base image configs:
 begin
-  imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
+  imageTypes = YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/imageTypes.yaml")
 rescue
   imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
 end
@@ -29,7 +29,7 @@ nodeList = ENV['nodes']
 nodeList ||= 'dev'
 #nodeList ||= 'cluster'
 p "Using node list: #{nodeList}"
-nodes = YAML.load_file("tools/vagrant/nodeLists/#{nodeList}.yaml")
+nodes = YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/nodeLists/#{nodeList}.yaml")
 
 Vagrant.configure("2") do |config|
 
