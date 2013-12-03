@@ -7,27 +7,35 @@
 #
 
 frameworkPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $frameworkPath # For when calling from other paths
-targetVagrantPath="$( cd "$frameworkPath/../" && pwd )"
+projectPath="$1"
+targetVagrantPath="$1/tools/vagrant"
+
+if [[ ! -d $projectPath ]]; then 
+  echo "The target Vagrant of [$projectPath] installation path is invalid"
+  exit 127
+fi
 
 # Get version of this repository that we're working with, to tag copies.
 # Assumes this was installed using the sprint-zero framework
-frameworkSource="$(cat ../../../.git/modules/tools/vagrant/.framework-vagrant/HEAD) on $(date +%Y-%m-%d_%H%M)"
+frameworkSource="$(cd $frameworkPath && git rev-parse --short HEAD) on $(date +%Y-%m-%d_%H%M)"
+
 function copyAndTag {
     local filename=$1
-    local sourceFile=$frameworkPath/$filename
     local destFile=$2
+    local sourceFile=$frameworkPath/$filename
+
     [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
+    
     if [[ -f $destFile ]]; then
-            echo "* Skipping existing template: $destFile"
+      echo "* Skipping existing template: $destFile"
     else
-        echo "Copying: $filename"
-        local command="cp $sourceFile $destFile"
-        $command
-        echo "#$frameworkSource" >> $destFile
-        copiedFileList=" $copiedFileList $filename "
+      echo "Copying: $filename"
+      local command="cp $sourceFile $destFile"
+      $command
+      echo "#$frameworkSource" >> $destFile
     fi
 }
+
 function symLink {
     local filename=$1
     local destFile=$2 # Optional arg.  Default is relative path
@@ -35,52 +43,51 @@ function symLink {
     
     osType="$(uname)"
     if [[ $osType == *WIN* || $osType == *MIN* ]]; then
-        # Look for CYGWIN or MINGW
-        copyAndTag $filename
+      # Look for CYGWIN or MINGW
+      copyAndTag $filename
     else
-        # Build Destination Link
-        [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
+      # Build Destination Link
+      [[ "$destFile" == "" ]] && destFile=$targetVagrantPath/$filename
 
-
-        local sourceFile
-        local filenameOnly
-        local relativePath
-        local pathCount
+      local sourceFile
+      local filenameOnly
+      local relativePath
+      local pathCount
         
-        # Build Source Link
-        if [[ "$relativeSourcePath" != "" ]]; then
-            sourceFile="${relativeSourcePath}.framework-vagrant/$filename"
-        else
-            filenameOnly=$(basename "$filename")
-            relativePath="${filename%/*}"
-            if [[ "$filenameOnly" == "$relativePath" ]]; then
-                relativePath=""
-            else
-                pathCount="$( echo $relativePath | grep -o '/' | wc -l)"
-                relativePath=""
-                while [[ "$pathCount" != "-1" ]]; do
-                    relativePath="${relativePath}../"
-                    (( pathCount-- ))
-                done
-            fi
-            sourceFile="${relativePath}.framework-vagrant/$filename"
-        fi
+      # Build Source Link
+      if [[ "$relativeSourcePath" != "" ]]; then
+          sourceFile="${relativeSourcePath}.framework-vagrant/$filename"
+      else
+          filenameOnly=$(basename "$filename")
+          relativePath="${filename%/*}"
+          if [[ "$filenameOnly" == "$relativePath" ]]; then
+              relativePath=""
+          else
+              pathCount="$( echo $relativePath | grep -o '/' | wc -l)"
+              relativePath=""
+              while [[ "$pathCount" != "-1" ]]; do
+                  relativePath="${relativePath}../"
+                  (( pathCount-- ))
+              done
+          fi
+          sourceFile="${relativePath}.framework-vagrant/$filename"
+      fi
 
-        # Check and make link
-        if [[ -h $destFile ]]; then
-            echo "- Updating symlink: $filename"
-            rm $destFile
-            ln -s $sourceFile $destFile
-        elif [[ -e $destFile ]]; then
-            echo "* Skipping existing file in place of symlink (customized for project): $destFile"
-        else
-            echo "Linking: $filename"
-            ln -s $sourceFile $destFile
-            if [[ "$(grep $filename $targetVagrantPath/.gitignore)" == "" ]];then
-                echo "$filename" >> $targetVagrantPath/.gitignore
-            fi
-        fi
-    fi
+      # Check and make link
+      if [[ -h $destFile ]]; then
+          echo "- Updating symlink: $filename"
+          rm $destFile
+          ln -s $sourceFile $destFile
+      elif [[ -e $destFile ]]; then
+          echo "* Skipping existing file in place of symlink (customized for project): $destFile"
+      else
+          echo "Linking: $filename"
+          ln -s $sourceFile $destFile
+          if [[ "$(grep $filename $targetVagrantPath/.gitignore)" == "" ]];then
+              echo "$filename" >> $targetVagrantPath/.gitignore
+          fi
+      fi
+  fi
 }
 
 echo "Installing vagrant framework into project repository...
@@ -93,15 +100,8 @@ echo "Installing vagrant framework into project repository...
 mkdir -p $targetVagrantPath/nodeLists/ \
     $targetVagrantPath/keys
 
-[[ ! -e $targetVagrantPath/.gitignore \
-    || "$(grep 'maintained' $targetVagrantPath/.gitignore)" == "" ]] && \
-    echo "# These are maintained by the vagrant framework" >> $targetVagrantPath/.gitignore
-# Special case for Vagrantfile - assumes convention and install in project root
-[[ "$(grep 'Vagrantfile' $targetVagrantPath/../../.gitignore)" == "" ]] && \
-    echo "Vagrantfile\n.vagrant" >> $targetVagrantPath/keys/.gitignore
-
-symLink    Vagrantfile ../../../Vagrantfile tools/vagrant/
-symLink    imageTypes.yaml
+copyAndTag Vagrantfile "$projectPath/Vagrantfile"
+copyAndTag imageTypes.yaml
 copyAndTag nodeLists/cluster.yaml
 copyAndTag nodeLists/dev.yaml
 
@@ -114,16 +114,9 @@ copyAndTag nodeLists/dev.yaml
 echo -e "accessKey: MY_ACCESS_KEY\nsecretKey: MY_SECRET_KEY\nkeypair: MY_KEYPAIR\nkeypath: tools/vagrant/keys/MY_KEYFILE.pem" > $targetVagrantPath/keys/awsKeys.yaml
 
 echo -e "Updating project's README.md..."
-[[ ! -e $projectPath/README.md \
-    || "$(grep -e '^Vagrant Framework:$' $projectPath/README.md)" == "" ]] \
-        && cat $frameworkPath/README.md >> $projectPath/README.md
-
-gitStatus=$(cd $targetVagrantPath && git status vagrant/nodeLists/dev.yaml | grep 'working directory clean' | wc -l | tr -d ' ' )
-if [[ "$gitStatus" != "1" ]]; then
-    echo -e "\nAdding vagrant templates and links to project repository...\n"
-    $(cd $targetVagrantPath && git add .gitignore $copiedFileList)
-    echo -e "Remember to review & commit git changes:\n\tcd ..\n\tgit status\n\tgit diff\n\tgit commit -m 'Added vagrant framework artifacts'\n\tgit push\n"
-fi
+[[ ! -e $targetVagrantPath/README.md \
+    || "$(grep -e '^Vagrant Framework:$' $targetVagrantPath/README.md)" == "" ]] \
+        && cat $frameworkPath/README.md >> $targetVagrantPath/README.md
 
 echo -e "\nVagrant installation done."
 

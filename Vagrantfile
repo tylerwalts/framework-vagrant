@@ -2,15 +2,22 @@
 require 'yaml'
 Vagrant.require_plugin "vagrant-aws"
 
+awsKeys = {
+  "accessKey"       => ENV['AWS_ACCESS_KEY']        || 'define_access',
+  "secretKey"       => ENV['AWS_SECRET_KEY']        || 'define_secret',
+  "keypair"         => ENV['AWS_KEYPAIR']           || 'define_keypair',
+  "keypath"         => ENV['AWS_KEYPATH']           || 'define_keypath', 
+  "security_group"  => ENV['AWS_SECURITY_GRP_ID']   || 'default'
+}
 begin
-  awsKeys = YAML.load_file("tools/vagrant/keys/awsKeys.yaml")
+  awsKeys.merge! YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/keys/awsKeys.yaml")
 rescue
-  awsKeys ||= {accessKey:'a',secretKey:'b',keypair:'c',keypath:'d'}
+  p "AWS keys file was missing, using environment vairables/defaults"
 end
 
 # Get list of base image configs:
 begin
-  imageTypes = YAML.load_file("tools/vagrant/imageTypes.yaml")
+  imageTypes = YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/imageTypes.yaml")
 rescue
   imageTypes ||= {vagrantBox:'a',vagrantUrl:'b',amazonImage:'c',rackspaceImage:'d'}
 end
@@ -21,25 +28,24 @@ nodeList = ENV['nodes']
 nodeList ||= 'dev'
 #nodeList ||= 'cluster'
 p "Using node list: #{nodeList}"
-nodes = YAML.load_file("tools/vagrant/nodeLists/#{nodeList}.yaml")
+nodes = YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/nodeLists/#{nodeList}.yaml")
 
 Vagrant.configure("2") do |config|
     ### Provide VMs ###
     nodes.each do |node|
+        fqdn="#{node['hostname']}.#{node['domain']}"
         config.vm.define node['hostname'] do |node_default|
 
             # Default settings for all providers
             node_default.vm.hostname = node['hostname']
-            node_default.vm.box = 'OverrideMe'
-            node_default.vm.box_url = 'http://override.me'
+            node_default.vm.box = 'Aws_Dummy_Box'
+            node_default.vm.box_url = 'https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box'
 
             # Amazon
             node_default.vm.provider :aws do |aws, override|
-                domain = domain
-                override.vm.hostname           = node['domain']
-                override.vm.hostname           = node['hostname']
                 aws.access_key_id              = awsKeys['accessKey']
                 aws.secret_access_key          = awsKeys['secretKey']
+                aws.security_groups            = [awsKeys['security_group']].flatten
                 aws.keypair_name               = awsKeys['keypair']
                 override.ssh.private_key_path  = awsKeys['keypath']
                 override.ssh.username          = "root"
@@ -50,8 +56,8 @@ Vagrant.configure("2") do |config|
 
             # VirtualBox
             node_default.vm.provider :virtualbox do |vb, override|
-                override.vm.hostname           = node['domain']
-                override.vm.hostname           = node['hostname']
+                fqdn = "#{node['hostname']}.vagrant.#{node['domain']}"
+                override.vm.hostname           = fqdn
                 override.vm.box                = imageTypes[ node['imageType'] ]['vagrantBox']
                 override.vm.box_url            = imageTypes[ node['imageType'] ]['vagrantUrl']
                 override.vm.network :private_network, ip: node['ip']
@@ -60,7 +66,7 @@ Vagrant.configure("2") do |config|
                 end
                 vb.customize [
                     'modifyvm', :id,
-                    '--name', node['hostname'],
+                    '--name', fqdn,
                     '--memory', node['ram'],
                     "--natdnsproxy1", "off",
                     "--natdnshostresolver1", "off"
@@ -71,12 +77,11 @@ Vagrant.configure("2") do |config|
             # Rackspace
             # TODO
 
-        end
-
-        ### Provision VMs ###
-        # Assume using the puppet apply wrapper with librarian argument
-        config.vm.provision :shell do |shell|
-            shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l -f FACTER_hostname=" + node['hostname']
+            ### Provision VMs ###
+            # Assume using the puppet apply wrapper with librarian argument
+            config.vm.provision :shell do |shell|
+                shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
+            end
         end
     end
 end
