@@ -1,9 +1,9 @@
-# Define instance types in sets, to work local, AWS and Rackspace
+# Define instance types in sets, to work local, AWS and Rackspace, using RightScale
 
 centos64:
-    vagrantBox: Centos64
-    vagrantUrl: http://puppet-vagrant-boxes.puppetlabs.com/centos-64-x64-vbox4210.box
-    amazonImage: ami-6fb1fe06
+    vagrantBox: RightScaleCentOS
+    vagrantUrl: https://rightscale-vagrant.s3.amazonaws.com/virtualbox/centos/6.4/RightImage_CentOS_6.4_x64_v13.5.0.1.box
+    amazonImage: ami-d14c34b8
     rackspaceImage: TBD
 
 precise64:
