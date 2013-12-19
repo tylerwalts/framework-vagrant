@@ -4,6 +4,9 @@ centos64:
     vagrantBox: RightScaleCentOS
     vagrantUrl: https://rightscale-vagrant.s3.amazonaws.com/virtualbox/centos/6.4/RightImage_CentOS_6.4_x64_v13.5.0.1.box
     amazonImage: ami-d14c34b8
+    amazonImage: 
+      us-east-1: ami-d14c34b8
+      us-west-1: ami-82dcf4c7
     rackspaceImage: TBD
 
 precise64:
