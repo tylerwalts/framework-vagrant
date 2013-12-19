@@ -50,7 +50,7 @@ Vagrant.configure("2") do |config|
                 override.ssh.private_key_path  = awsKeys['keypath']
                 override.ssh.username          = "root"
                 aws.region                     = "us-east-1"
-                aws.ami                        = imageTypes[ node['imageType'] ]['amazonImage']
+                aws.ami                        = imageTypes[ node['imageType'] ]['amazonImage'][awsKeys['region']]
                 aws.instance_type              = node['awsType']
             end
 
