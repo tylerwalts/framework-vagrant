@@ -28,3 +28,7 @@ Vagrant Framework:
         * Or, create a new list in tools/vagrant/nodeLists/ and do one of above
 
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/tylerwalts/framework-vagrant/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
