@@ -70,6 +70,7 @@ Vagrant.configure("2") do |config|
                     'modifyvm', :id,
                     '--name', fqdn,
                     '--memory', node['ram'],
+                    "--cpus", node['cpus'],
                     "--natdnsproxy1", "off",
                     "--natdnshostresolver1", "off"
                 ]
