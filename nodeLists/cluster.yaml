@@ -4,6 +4,7 @@
     ip: '192.168.88.1'
     imageType: 'centos64'
     ram: '1024'
+    cpus: '1'
     awsType: 'm1.small'
     portmappings:
         -
@@ -15,10 +16,10 @@
     ip: '192.168.88.2'
     imageType: 'centos64'
     ram: '512'
+    cpus: '1'
     awsType: 't1.micro'
     portmappings:
         -
             from: 80
             to: 8080
-
 

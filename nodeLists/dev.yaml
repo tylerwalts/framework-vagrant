@@ -4,4 +4,5 @@
     ip: '192.168.88.10'
     imageType: 'centos64'
     ram: '512'
+    cpus: '1'
     awsType: 't1.micro'

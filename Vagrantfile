@@ -1,18 +1,18 @@
 # Note: First time users run this:  `vagrant plugin install vagrant-aws`
 require 'yaml'
-Vagrant.require_plugin "vagrant-aws"
+Vagrant.require_plugin 'vagrant-aws'
 
 awsKeys = {
-  "accessKey"       => ENV['AWS_ACCESS_KEY']        || 'define_access',
-  "secretKey"       => ENV['AWS_SECRET_KEY']        || 'define_secret',
-  "keypair"         => ENV['AWS_KEYPAIR']           || 'define_keypair',
-  "keypath"         => ENV['AWS_KEYPATH']           || 'define_keypath', 
-  "security_group"  => ENV['AWS_SECURITY_GRP_ID']   || 'default'
+  'accessKey'       => ENV['AWS_ACCESS_KEY']        || 'define_access',
+  'secretKey'       => ENV['AWS_SECRET_KEY']        || 'define_secret',
+  'keypair'         => ENV['AWS_KEYPAIR']           || 'define_keypair',
+  'keypath'         => ENV['AWS_KEYPATH']           || 'define_keypath', 
+  'security_group'  => ENV['AWS_SECURITY_GRP_ID']   || 'default'
 }
 begin
   awsKeys.merge! YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/keys/awsKeys.yaml")
 rescue
-  p "AWS keys file was missing, using environment vairables/defaults"
+  p 'AWS keys file was missing, using environment vairables/defaults'
 end
 
 # Get list of base image configs:
@@ -30,7 +30,7 @@ nodeList ||= 'dev'
 p "Using node list: #{nodeList}"
 nodes = YAML.load_file("#{File.dirname(__FILE__)}/tools/vagrant/nodeLists/#{nodeList}.yaml")
 
-Vagrant.configure("2") do |config|
+Vagrant.configure('2') do |config|
     ### Provide VMs ###
     nodes.each do |node|
         fqdn="#{node['hostname']}.#{node['domain']}"
@@ -48,8 +48,8 @@ Vagrant.configure("2") do |config|
                 aws.security_groups            = [awsKeys['security_group']].flatten
                 aws.keypair_name               = awsKeys['keypair']
                 override.ssh.private_key_path  = awsKeys['keypath']
-                override.ssh.username          = "root"
-                aws.region                     = "us-east-1"
+                override.ssh.username          = 'root'
+                aws.region                     = 'us-east-1'
                 aws.ami                        = imageTypes[ node['imageType'] ]['amazonImage'][awsKeys['region']]
                 aws.instance_type              = node['awsType']
             end
@@ -68,10 +68,11 @@ Vagrant.configure("2") do |config|
                     'modifyvm', :id,
                     '--name', fqdn,
                     '--memory', node['ram'],
-                    "--natdnsproxy1", "off",
-                    "--natdnshostresolver1", "off"
+                    '--cpus', node['cpus'],
+                    '--natdnsproxy1', 'off',
+                    '--natdnshostresolver1', 'off'
                 ]
-                vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1" ]
+                vb.customize ['setextradata', :id, 'VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root', '1' ]
             end
 
             # Rackspace
@@ -80,7 +81,7 @@ Vagrant.configure("2") do |config|
             ### Provision VMs ###
             # Assume using the puppet apply wrapper with librarian argument
             config.vm.provision :shell do |shell|
-                shell.inline = "/vagrant/tools/puppet/run_puppet_apply.sh -l"
+                shell.inline = '/vagrant/tools/puppet/run_puppet_apply.sh -l'
             end
         end
     end
